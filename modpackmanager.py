@@ -33,19 +33,15 @@ def create(source, destination, name):
     full_destination = get_full_destination(destination, name)
     os.makedirs(full_destination, exist_ok=True)
     
-    # Criar o arquivo workshop.txt
-    workshop_file_path = os.path.join(modpack_path, "workshop.txt")
-    workshop_content = """version=1
-title=Mod Template
-description=This is an example mod with two worlds. You can use this as a template for your own map mods.
-description=
-description=The first world has a single 300x300-tile cell.
-description=The second world adds cells all around the first world.
-tags=
-visibility=public"""
-    with open(workshop_file_path, 'w') as workshop_file:
-        workshop_file.write(workshop_content)
-    print(f"Arquivo workshop.txt criado em {workshop_file_path}")
+    # Criar o arquivo mod.info
+    mod_info_file_path = os.path.join(modpack_path, "mod.info")
+    mod_info_content = """name=Mod Template
+id=ModTemplate
+description=This is an example mod containing two maps.
+poster=poster.png"""
+    with open(mod_info_file_path, 'w') as mod_info_file:
+        mod_info_file.write(mod_info_content)
+    print(f"Arquivo mod.info criado em {mod_info_file_path}")
 
     copy_mods_for_creation(source, destination, name)
 
@@ -87,14 +83,20 @@ def update(source, destination, name):
     mod_ids = get_mod_ids(config)
     error_occurred = False
     for mod_id in mod_ids:
-        src_path = os.path.join(source, mod_id.strip())
-        dst_path = os.path.join(full_destination, mod_id.strip())
+        src_path = os.path.join(source, mod_id.strip(), "mods")
         if not os.path.exists(src_path):
-            print(f"Erro: Mod com ID {mod_id} não encontrado em {src_path}")
+            print(f"Erro: Pasta 'mods' não encontrada para o mod com ID {mod_id} em {src_path}")
             error_occurred = True
             continue
-        print(f"Copiando mod com ID: {mod_id}")
-        shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+        print(f"Copiando conteúdo da pasta 'mods' do mod com ID: {mod_id}")
+        for item in os.listdir(src_path):
+            s = os.path.join(src_path, item)
+            d = os.path.join(full_destination, item)
+            if os.path.isdir(s):
+                shutil.copytree(s, d, dirs_exist_ok=True)
+            else:
+                os.makedirs(os.path.dirname(d), exist_ok=True)
+                shutil.copy2(s, d)
     if not error_occurred:
         print("Mods atualizados com sucesso!")
     else:
@@ -108,14 +110,20 @@ def copy_mods_for_creation(source, destination, name):
     mod_ids = get_mod_ids(config)
     error_occurred = False
     for mod_id in mod_ids:
-        src_path = os.path.join(source, mod_id.strip())
-        dst_path = os.path.join(full_destination, mod_id.strip())
+        src_path = os.path.join(source, mod_id.strip(), "mods")
         if not os.path.exists(src_path):
-            print(f"Erro: Mod com ID {mod_id} não encontrado em {src_path}")
+            print(f"Erro: Pasta 'mods' não encontrada para o mod com ID {mod_id} em {src_path}")
             error_occurred = True
             continue
-        print(f"Copiando mod com ID: {mod_id}")
-        shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+        print(f"Copiando conteúdo da pasta 'mods' do mod com ID: {mod_id}")
+        for item in os.listdir(src_path):
+            s = os.path.join(src_path, item)
+            d = os.path.join(full_destination, item)
+            if os.path.isdir(s):
+                shutil.copytree(s, d, dirs_exist_ok=True)
+            else:
+                os.makedirs(os.path.dirname(d), exist_ok=True)
+                shutil.copy2(s, d)
     if not error_occurred:
         print("Modpack criado com sucesso!")
     else:
